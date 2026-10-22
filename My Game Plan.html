@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Game Plan">
+<meta name="theme-color" content="#FFFDF7">
+<title>My Game Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one-column phone app; sticky top bar with points, tab bar at bottom; panels swap. Matches the paper book's ink-on-cream look. */
+:root{
+  --bg:#FFFDF7; --card:#FFFFFF; --ink:#1E2A38; --muted:#5B6573; --line:#1E2A38;
+  --teal:#127A7A; --teal-soft:#E3F2F1; --coin:#F2B632; --coin-soft:#FFF4D1; --orange:#C2561A; --orange-soft:#FBE9DD;
+  --display:'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+  --body:Nunito, 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141B24; --card:#1C2531; --ink:#F2EEE3; --muted:#A9B2BE; --line:#3A4757;
+  --teal:#4FC1BC; --teal-soft:#183533; --coin:#F2B632; --coin-soft:#3A3019; --orange:#F0915A; --orange-soft:#3A2519; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141B24; --card:#1C2531; --ink:#F2EEE3; --muted:#A9B2BE; --line:#3A4757;
+  --teal:#4FC1BC; --teal-soft:#183533; --coin:#F2B632; --coin-soft:#3A3019; --orange:#F0915A; --orange-soft:#3A2519; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 12px;border-bottom:3px solid var(--line);display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+h1{margin:0;font-family:var(--display);font-weight:800;font-size:28px;line-height:1.05;text-wrap:balance}
+h2{margin:0;font-family:var(--display);font-weight:800;font-size:22px}
+.wallet{display:flex;gap:8px}
+.coin{min-width:74px;text-align:center;border:2px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--coin-soft)}
+.coin b{display:block;font-family:var(--display);font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.coin span{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.coin.saved{background:var(--teal-soft)}
+main{flex:1;padding-block:18px 110px;display:flex;flex-direction:column;gap:18px}
+section[hidden]{display:none}
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:10px}
+.list{display:flex;flex-direction:column;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1.5px solid var(--line);min-height:56px}
+.item:last-child{border-bottom:0}
+.item .txt{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:700}
+.pill{font-weight:800;font-variant-numeric:tabular-nums;border:2px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--coin-soft);white-space:nowrap}
+.btn{border:2px solid var(--line);border-radius:12px;padding:10px 16px;font-weight:800;background:var(--card)}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+:root[data-theme="dark"] .btn.primary{color:#0E1A1A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0E1A1A}}
+.btn.coinbtn{background:var(--coin);color:#1E2A38;border-color:var(--line)}
+.btn.ghost{border-style:dashed;background:transparent}
+.btn.small{padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.plus{width:56px;height:44px;border-radius:12px;border:2px solid var(--line);background:var(--coin);font-family:var(--display);font-weight:800;font-size:18px;color:#1E2A38}
+.check{width:30px;height:30px;border:2px solid var(--line);border-radius:8px;background:var(--card);display:grid;place-items:center;flex:none;font-weight:800}
+.check.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.done .txt{text-decoration:line-through;color:var(--muted)}
+.done{background:var(--teal-soft)}
+.when{flex:none;width:76px;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-variant-numeric:tabular-nums}
+.when b{font-family:var(--display);font-size:16px;line-height:1.1}
+.when span{font-size:12px;font-weight:700;color:var(--muted)}
+.slide{position:relative;flex:none;width:118px;height:36px;border:2px solid var(--line);border-radius:999px;background:var(--card);padding:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;font-size:13px;font-weight:800;overflow:hidden}
+.slide .lab{position:relative;z-index:1;text-align:center;transition:color .2s}
+.slide .knob{position:absolute;top:2px;bottom:2px;left:2px;width:calc(50% - 4px);border-radius:999px;background:var(--coin);border:2px solid var(--line);transition:left .2s ease}
+.slide[aria-checked="true"] .knob{left:calc(50% + 2px);background:var(--teal);border-color:var(--teal)}
+.slide[aria-checked="false"] .lab.l1{color:#1E2A38}
+.slide[aria-checked="true"] .lab.l2{color:#fff}
+.slide[aria-checked="true"] .lab.l1,.slide[aria-checked="false"] .lab.l2{color:var(--muted)}
+.prog{display:flex;align-items:center;gap:10px;font-weight:800}
+.prog .bar{flex:1;height:14px;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.prog .bar i{display:block;height:100%;background:var(--teal);transition:width .3s}
+details{border-top:1.5px dashed var(--line);padding-top:10px}
+summary{font-weight:800;color:var(--teal);cursor:pointer;padding:4px 0}
+.grp{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.grp h3{margin:0;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--card);font-weight:700;font-size:14px;text-align:left;display:inline-flex;gap:8px;align-items:center;max-width:100%}
+.chip em{font-style:normal;font-weight:800;background:var(--coin-soft);border-radius:999px;padding:0 7px;font-variant-numeric:tabular-nums}
+.chip:disabled{opacity:.45;cursor:default;text-decoration:line-through}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 12px;font-size:14px}
+.bgrid div{display:flex;gap:8px;align-items:flex-start}
+.bgrid .pill{font-size:12px;padding:0 8px}
+.ed{display:flex;align-items:center;gap:8px}
+.ed input[type=text]{padding:7px 10px}
+.ed input[type=number]{width:64px;padding:7px 8px}
+input[type=time]{border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--card)}
+@media (prefers-reduced-motion:reduce){.slide .knob,.prog .bar i{transition:none}}
+.empty{border:2px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);text-align:center}
+.note{font-size:14px;color:var(--muted)}
+.card{border:2px solid var(--line);border-radius:16px;padding:16px;background:var(--card)}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:800;z-index:20;max-width:90vw}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:3px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav .tabs{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{border:0;background:transparent;padding:10px 2px 12px;font-size:13px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button svg{width:24px;height:24px}
+nav button[aria-selected="true"]{color:var(--teal)}
+/* timer */
+.dial{position:relative;width:min(260px,70vw);aspect-ratio:1;max-width:100%;margin:0 auto}
+.dial svg{width:100%;height:100%}
+.dial .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.dial .center b{font-family:var(--display);font-size:34px;font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;border-right:2px solid var(--line);padding:10px;font-weight:800;background:var(--card)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.alert{border:3px solid var(--line);border-radius:18px;background:var(--coin-soft);padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center}
+.alert h2{font-size:28px}
+.log{font-size:14px}
+.log .item{min-height:0;padding:8px 12px}
+.pos{color:var(--teal);font-weight:800}.neg{color:var(--orange);font-weight:800}
+input[type=text],input[type=number]{border:2px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--card);min-width:0}
+input[type=text]{flex:1}
+input[type=number]{width:76px}
+.confirm{background:var(--orange-soft)}
+.x{border:0;background:transparent;font-size:20px;font-weight:800;color:var(--muted);padding:4px 8px}
+.sync{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s ease}@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}}
+</style>
+
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="stack" style="gap:2px">
+      <span class="eyebrow" id="who">My Game Plan</span>
+      <h1 id="tabTitle">Today</h1>
+    </div>
+    <div class="wallet">
+      <div class="coin" id="coinNow"><b id="ptsNow">0</b><span>Points</span></div>
+      <div class="coin saved"><b id="ptsSaved">0</b><span>Saved</span></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TODAY -->
+    <section id="tab-today" class="stack">
+      <div class="row" style="justify-content:space-between"><h2>Today's game plan</h2><button class="btn small ghost" id="newDay">New day</button></div>
+      <div id="schedProg"></div>
+      <div id="schedList"></div>
+      <div class="card stack" style="padding:12px">
+        <input type="text" id="schedIn" placeholder="Add a step, like Homework or Break" aria-label="New step">
+        <div class="row" style="flex-wrap:wrap">
+          <label class="row" style="gap:6px"><span class="note">Starts</span><input type="time" id="schedTime" aria-label="Start time"></label>
+          <label class="row" style="gap:6px"><span class="note">Minutes</span><input type="number" id="schedMin" min="1" max="180" placeholder="15" aria-label="How many minutes"></label>
+          <button class="btn primary" id="schedAdd" style="margin-left:auto">Add</button>
+        </div>
+      </div>
+      <p class="note">Slide a step to Done when it's finished. Steps with a start time sort themselves in order. "New day" moves every step back to To do and keeps the steps and times.</p>
+    </section>
+
+    <!-- POINTS -->
+    <section id="tab-points" class="stack" hidden>
+      <h2>Earn points</h2>
+      <div id="earnList"></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap">
+        <button class="btn small" id="undo">Undo last</button>
+        <button class="btn small" id="endSession">End session: save leftover points</button>
+      </div>
+      <div id="endConfirm"></div>
+      <h2 style="margin-top:8px">Points history</h2>
+      <div id="logList" class="log"></div>
+    </section>
+
+    <!-- REWARDS -->
+    <section id="tab-rewards" class="stack" hidden>
+      <h2>Reward bank</h2>
+      <p class="note">Spend today's points first. Bigger rewards can use saved points too.</p>
+      <div id="rewardList"></div>
+      <div id="buyConfirm"></div>
+    </section>
+
+    <!-- TIMER -->
+    <section id="tab-timer" class="stack" hidden>
+      <h2>Check-in timer</h2>
+      <p class="note">The chime goes off at random times around the average you pick. When it rings, check: calm body and following the plan? Then give the check-in points.</p>
+      <div class="seg" role="group" aria-label="Average time between checks">
+        <button data-avg="3" aria-pressed="true">About 3 min</button>
+        <button data-avg="5" aria-pressed="false">About 5 min</button>
+        <button data-avg="10" aria-pressed="false">About 10 min</button>
+      </div>
+      <div id="alertBox"></div>
+      <div class="dial" aria-live="polite">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--teal-soft)" stroke-width="12"/>
+          <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--teal)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="center"><span class="note" id="dialLabel">Ready</span><b id="dialTime">--</b><span class="note" id="dialChecks">0 checks today</span></div>
+      </div>
+      <div class="row" style="justify-content:center"><button class="btn primary" id="timerBtn" style="min-width:160px">Start timer</button><button class="btn" id="timerTest">Test chime</button></div>
+      <p class="note">The countdown is hidden on purpose so checks feel like a surprise. Keep this screen open during work time. Sound needs the phone's ringer on.</p>
+    </section>
+
+    <!-- SETUP -->
+    <section id="tab-setup" class="stack" hidden>
+      <h2>Setup</h2>
+      <p class="note">Fill these in with your BCBA. Only first names here, nothing private.</p>
+      <div class="card stack">
+        <label class="stack" style="gap:4px"><b>Player name</b><input type="text" id="nameIn" placeholder="First name" maxlength="20"></label>
+      </div>
+      <div class="card stack budget">
+        <b>Point budget: about 50 points a session</b>
+        <div class="bgrid">
+          <div><span class="pill">1–2</span> Check-ins, asking the right way, small skills</div>
+          <div><span class="pill">2–3</span> Finishing work, accepting "no", self-starts</div>
+          <div><span class="pill">3–5</span> Hard moments handled, big routines, session bonus</div>
+        </div>
+        <div class="bgrid">
+          <div><span class="pill">5–10</span> Quick rewards at a break</div>
+          <div><span class="pill">15–25</span> Medium rewards</div>
+          <div><span class="pill">35–50</span> Big end-of-session rewards</div>
+          <div><span class="pill">75–200</span> Save-up rewards across sessions</div>
+        </div>
+        <span class="note">Points are never taken away for behavior. Change any number below to fit him.</span>
+      </div>
+      <div class="card stack">
+        <b>Ways to earn points</b>
+        <div id="earnEdit" class="stack"></div>
+        <div class="row"><input type="text" id="earnIn" placeholder="Your own skill" aria-label="New way to earn"><input type="number" id="earnPts" value="2" min="1" max="50" aria-label="Points"><button class="btn primary" id="earnAdd">Add</button></div>
+        <details><summary>Ideas: tap to add</summary><div id="earnIdeas" class="stack"></div></details>
+      </div>
+      <div class="card stack">
+        <b>Reward bank</b>
+        <div id="rewEdit" class="stack"></div>
+        <div class="row"><input type="text" id="rewIn" placeholder="Your own reward" aria-label="New reward"><input type="number" id="rewPts" value="10" min="1" max="999" aria-label="Cost"><button class="btn primary" id="rewAdd">Add</button></div>
+        <details><summary>Ideas: tap to add</summary><div id="rewIdeas" class="stack"></div></details>
+      </div>
+      <div class="card stack">
+        <b>Check-in timer</b>
+        <label class="row"><span style="flex:1">Points for a good check</span><input type="number" id="chkPts" value="1" min="1" max="10"></label>
+      </div>
+      <div class="card stack">
+        <b>Back up and restore</b>
+        <span class="note">Everything saves on this device only. To move it to another phone or keep a copy, back it up and restore the file on the other device.</span>
+        <div class="row" style="flex-wrap:wrap"><button class="btn" id="backup">Back up</button><label class="btn" for="restoreIn" style="display:inline-block">Restore from file</label><input type="file" id="restoreIn" accept=".json,application/json" hidden></div>
+        <div id="resetBox"><button class="btn small ghost" id="resetAsk">Start over (clear everything)</button></div>
+      </div>
+      <p class="sync" id="sync"></p>
+    </section>
+  </main>
+</div>
+
+<nav><div class="tabs" role="tablist">
+  <button role="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Today</button>
+  <button role="tab" data-tab="points" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>Points</button>
+  <button role="tab" data-tab="rewards" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18M12 9v12M12 9c-2-4-6-4-6-1s6 1 6 1zm0 0c2-4 6-4 6-1s-6 1-6 1z"/></svg>Rewards</button>
+  <button role="tab" data-tab="timer" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>Timer</button>
+  <button role="tab" data-tab="setup" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Setup</button>
+</div></nav>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const blank = () => ({name:'', now:0, saved:0, earn:[], rewards:[], sched:[], log:[], checkPts:1, checksDay:'', checks:0});
+let S = blank();
+let dbRef = null, saveTimer = null, writing = false, dirty = false;
+const LS = 'gameplan-state-v1';
+const titles = {today:'Today',points:'Points',rewards:'Rewards',timer:'Check-ins',setup:'Setup'};
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,1800)}
+function today(){return new Date().toDateString()}
+
+/* ---------- persistence ---------- */
+function loadLocal(){try{const r=localStorage.getItem(LS);if(r)S=Object.assign(blank(),JSON.parse(r))}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function commit(){
+  S.log = S.log.slice(0,60);
+  saveLocal(); render();
+  dirty = true;
+  clearTimeout(saveTimer); saveTimer=setTimeout(flush,500);
+}
+async function flush(){
+  if(!dbRef || writing || !dirty) return;
+  writing = true; dirty = false;
+  try{ await dbRef.set(JSON.parse(JSON.stringify(S))); $('sync').textContent='Saved. Shared with everyone who opens this app.'; }
+  catch(e){ $('sync').textContent = e && e.code==='invalid_argument' ? 'You can view this app but not change it. Ask your BCBA for edit access.' : 'Could not save just now. Changes are kept on this device.'; }
+  writing = false;
+  if(dirty) flush();
+}
+function connect(){ $('sync').textContent='Saved on this device. Use Back up to move it to another phone.'; }
+
+/* ---------- points ---------- */
+function addPts(n, note){
+  S.now += n; S.log.unshift({id:uid(), d:n, note, t:Date.now(), from:'now'});
+  commit(); const c=$('coinNow'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  toast(`+${n} for ${note}`);
+}
+
+/* ---------- render ---------- */
+function render(){
+  $('ptsNow').textContent = S.now; $('ptsSaved').textContent = S.saved;
+  $('who').textContent = S.name ? S.name + "'s Game Plan" : 'My Game Plan';
+  if(document.activeElement!==$('nameIn')) $('nameIn').value = S.name;
+  if(document.activeElement!==$('chkPts')) $('chkPts').value = S.checkPts;
+  if(S.checksDay!==today()){ /* display only */ }
+  $('dialChecks').textContent = (S.checksDay===today()?S.checks:0) + ' good checks today';
+
+  // schedule
+  const nDone = S.sched.filter(s=>s.done).length;
+  $('schedProg').innerHTML = S.sched.length ? `<div class="prog"><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${S.sched.length}" aria-valuenow="${nDone}"><i style="width:${Math.round(nDone/S.sched.length*100)}%"></i></div><span>${nDone} of ${S.sched.length} done</span></div>` : '';
+  $('schedList').innerHTML = S.sched.length ? '<div class="list">'+S.sched.map((s,i)=>`
+    <div class="item ${s.done?'done':''}">
+    <div class="when"><b>${s.time?fmtTime(s.time):'—'}</b><span>${s.min?s.min+' min':''}</span></div>
+    <span class="txt">${esc(s.text)}${s.time&&s.min?`<br><span class="note" style="font-weight:600">until ${fmtTime(addMin(s.time,s.min))}</span>`:''}</span>
+    <button class="slide" role="switch" aria-checked="${!!s.done}" data-sched="${i}" aria-label="${esc(s.text)}: ${s.done?'done':'to do'}"><span class="knob"></span><span class="lab l1">To do</span><span class="lab l2">Done</span></button>
+    <button class="x" data-scheddel="${i}" aria-label="Remove ${esc(s.text)}">×</button></div>`).join('')+'</div>'
+    : '<div class="empty">No steps yet. Add today\'s steps below with a start time and how many minutes, like 4:30 Snack, 15 min.</div>';
+
+  // earn
+  $('earnList').innerHTML = S.earn.length ? '<div class="list">'+S.earn.map((e,i)=>`
+    <div class="item"><span class="txt">${esc(e.text)}</span><span class="pill">${e.pts}</span><button class="plus" data-earn="${i}" aria-label="Give ${e.pts} points for ${esc(e.text)}">+${e.pts}</button></div>`).join('')+'</div>'
+    : '<div class="empty">No ways to earn yet. Add them in Setup.</div>';
+
+  // log
+  $('logList').innerHTML = S.log.length ? '<div class="list">'+S.log.slice(0,15).map(l=>`
+    <div class="item"><span class="txt" style="font-weight:600">${esc(l.note)}</span><span class="note">${new Date(l.t).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'})}</span><span class="${l.d>=0?'pos':'neg'}">${l.d>=0?'+':''}${l.d}</span></div>`).join('')+'</div>'
+    : '<div class="empty">Points given and spent show up here.</div>';
+
+  // rewards
+  const total = S.now + S.saved;
+  $('rewardList').innerHTML = S.rewards.length ? '<div class="list">'+S.rewards.map((r,i)=>{
+    const need = Math.max(0, r.cost - total);
+    return `<div class="item"><span class="txt">${esc(r.text)}${need?`<br><span class="note" style="font-weight:600">${need} more to go</span>`:''}</span><span class="pill">${r.cost}</span><button class="btn coinbtn small" data-buy="${i}" ${need?'disabled':''}>Cash in</button></div>`}).join('')+'</div>'
+    : '<div class="empty">No rewards yet. Add them in Setup.</div>';
+
+  // setup lists
+  const ae=document.activeElement;
+  if(!(ae && ae.closest && ae.closest('#earnEdit'))) $('earnEdit').innerHTML = S.earn.map((e,i)=>`<div class="ed"><input type="text" id="et${i}" data-et="${i}" value="${esc(e.text)}" maxlength="80" aria-label="Skill"><input type="number" id="ep${i}" data-ep="${i}" value="${e.pts}" min="1" max="50" aria-label="Points"><button class="x" data-earndel="${i}" aria-label="Remove ${esc(e.text)}">×</button></div>`).join('') || '<span class="note">None yet. Type your own or tap ideas below.</span>';
+  if(!(ae && ae.closest && ae.closest('#rewEdit'))) $('rewEdit').innerHTML = S.rewards.map((r,i)=>`<div class="ed"><input type="text" id="rt${i}" data-rt="${i}" value="${esc(r.text)}" maxlength="80" aria-label="Reward"><input type="number" id="rp${i}" data-rp="${i}" value="${r.cost}" min="1" max="999" aria-label="Cost"><button class="x" data-rewdel="${i}" aria-label="Remove ${esc(r.text)}">×</button></div>`).join('') || '<span class="note">None yet. Type your own or tap ideas below.</span>';
+  const haveE=new Set(S.earn.map(e=>e.text.toLowerCase())), haveR=new Set(S.rewards.map(r=>r.text.toLowerCase()));
+  $('earnIdeas').innerHTML = EARN_IDEAS.map((g,gi)=>`<div class="grp"><h3>${g.g}</h3><div class="chips">${g.items.map(([t,p],ii)=>`<button class="chip" data-idea="e.${gi}.${ii}" ${haveE.has(t.toLowerCase())?'disabled':''}>${esc(t)}<em>${p}</em></button>`).join('')}</div></div>`).join('');
+  $('rewIdeas').innerHTML = REW_IDEAS.map((g,gi)=>`<div class="grp"><h3>${g.g}</h3><div class="chips">${g.items.map(([t,p],ii)=>`<button class="chip" data-idea="r.${gi}.${ii}" ${haveR.has(t.toLowerCase())?'disabled':''}>${esc(t)}<em>${p}</em></button>`).join('')}</div></div>`).join('');
+}
+
+const EARN_IDEAS = [
+  {g:'Getting work done', items:[['Made my plan for the session',2],['Started a task on my own within 10 seconds',2],['Finished a work block',3],['Checked my own work',2],['Used my checklist without reminders',2],['Finished homework',3],['Fixed a mistake without arguing',2]]},
+  {g:'Asking the right way', items:[['Asked for a break the right way',1],['Asked for help',1],['Asked for something and waited',2],['Got attention the right way',1],['Made a polite deal ("Can I do 2 more instead?")',2]]},
+  {g:'Going with the flow', items:[['Accepted "no" calmly',2],['Waited calmly',1],['Switched activities when the timer rang',2],['Handled a change in plans',3],['Stopped a fun activity when asked',2]]},
+  {g:'Calm body', items:[['Good check-in (timer)',1],['Used my calm-body tool on my own',1],['Finished an activity with a calm body',2],['Used my chewy instead of mouth',1],['Checked my feelings thermometer',1],['Calmed down and came back',3]]},
+  {g:'Staying safe', items:[['Stayed with my grown-up on the walk',3],['Stopped at the corner or curb',1],['Came back right away when called',2],['Stayed in the room during work',2]]},
+  {g:'Games and friends', items:[['Good sport when I lost',3],['Good winner (no bragging)',2],['Took turns the whole game',2],['Asked someone a question about them',1],['Stayed on their topic',1],['Had a 5-turn conversation',2],['Included my brother or sister',2],['Played by the agreed rules',2]]},
+  {g:'Doing it myself', items:[['Got dressed on my own',3],['Did buttons, snaps or zipper on my own',2],['Wiped my nose without a reminder',2],['Washed hands without a reminder',1],['Set the table',2],['Cleared my plate',1],['Put dishes on the drying rack',2],['Did my chore',3],['Put my things away',1],['Did my bedtime routine',3]]},
+  {g:'Bonus', items:[['Tried something new or hard',2],['Great session bonus',5],['Helped someone without being asked',2]]}
+];
+const REW_IDEAS = [
+  {g:'Quick: at a break', items:[['Pick the next activity',5],['Tell 3 jokes and stump the BT',5],['Choose the music',5],['A small snack or treat',8],['Sticker or small prize',8],['5 minutes of tablet',10],['Solve a chess puzzle together',10],['Sit in the "boss chair"',5]]},
+  {g:'Medium', items:[['1 game of chess with the BT',15],['Be the teacher for 10 minutes',15],['Pick tonight\'s dessert',15],['15 minutes of video games',20],['Quick round of Monopoly',20],['BT plays a game his way, his rules',20],['Build or craft project',20],['Silly-voice read-aloud',15]]},
+  {g:'Big: end of session', items:[['Full board game of his choice',40],['30 minutes of screen time',40],['Pick the park activity on Sunday',35],['Bake a treat together',45],['Choose the walk route',35],['Game tournament with siblings',50]]},
+  {g:'Save-up: across sessions', items:[['Movie night pick',75],['Pick pizza or takeout night',100],['Small toy from the store',100],['Outing with a parent',150],['New board game',200],['Stay up 15 minutes late',75]]}
+];
+
+/* ---------- events ---------- */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const d = b.dataset;
+  if(d.tab){ document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected', x===b)); document.querySelectorAll('main section').forEach(s=>s.hidden = s.id!=='tab-'+d.tab); $('tabTitle').textContent=titles[d.tab]; window.scrollTo(0,0); return; }
+  if(d.sched!==undefined){ const s=S.sched[+d.sched]; s.done=!s.done; commit(); return; }
+  if(d.scheddel!==undefined){ S.sched.splice(+d.scheddel,1); commit(); return; }
+  if(d.earn!==undefined){ const x=S.earn[+d.earn]; addPts(x.pts, x.text); return; }
+  if(d.earndel!==undefined){ S.earn.splice(+d.earndel,1); commit(); return; }
+  if(d.rewdel!==undefined){ S.rewards.splice(+d.rewdel,1); commit(); return; }
+  if(d.idea){ const [k,g,i]=d.idea.split('.'); const src=k==='e'?EARN_IDEAS:REW_IDEAS; const [t,p]=src[+g].items[+i];
+    if(k==='e') S.earn.push({text:t,pts:p}); else S.rewards.push({text:t,cost:p}); commit(); toast('Added: '+t); return; }
+  if(d.buy!==undefined){
+    const r=S.rewards[+d.buy]; const fromNow=Math.min(S.now,r.cost), fromSaved=r.cost-fromNow;
+    $('buyConfirm').innerHTML=`<div class="card confirm stack"><b>Cash in ${r.cost} points for ${esc(r.text)}?</b><span class="note">${fromNow} from today${fromSaved?` and ${fromSaved} from saved`:''}.</span><div class="row"><button class="btn primary" data-buyok="${d.buy}">Yes, cash in</button><button class="btn" data-cancel="buyConfirm">Not now</button></div></div>`;
+    return;
+  }
+  if(d.buyok!==undefined){
+    const r=S.rewards[+d.buyok]; if(!r || r.cost > S.now+S.saved) return;
+    const fromNow=Math.min(S.now,r.cost), fromSaved=r.cost-fromNow;
+    S.now-=fromNow; S.saved-=fromSaved; S.log.unshift({id:uid(),d:-r.cost,note:'Cashed in: '+r.text,t:Date.now(),fromNow,fromSaved});
+    $('buyConfirm').innerHTML=''; commit(); toast('Enjoy: '+r.text); return;
+  }
+  if(d.cancel){ $(d.cancel).innerHTML=''; return; }
+  if(b.id==='endSession'){
+    $('endConfirm').innerHTML = S.now ? `<div class="card confirm stack"><b>Move ${S.now} points into Saved?</b><span class="note">Saved points carry over to the next session for bigger rewards.</span><div class="row"><button class="btn primary" id="endOk">Yes, save them</button><button class="btn" data-cancel="endConfirm">Not now</button></div></div>` : '<div class="card stack"><span class="note">No points left to save today.</span></div>';
+    return;
+  }
+  if(b.id==='endOk'){ const n=S.now; S.saved+=n; S.now=0; S.log.unshift({id:uid(),d:0,note:`Saved ${n} points for later`,t:Date.now()}); $('endConfirm').innerHTML=''; commit(); toast(`${n} points saved`); return; }
+  if(b.id==='undo'){
+    const l=S.log[0]; if(!l){ toast('Nothing to undo'); return; }
+    if(l.note.startsWith('Saved ')){ const n=parseInt(l.note.slice(6))||0; S.saved-=n; S.now+=n; }
+    else if(l.d>0){ S.now=Math.max(0,S.now-l.d); if(l.check && S.checks>0) S.checks--; }
+    else if(l.d<0){ S.now+=l.fromNow||0; S.saved+=l.fromSaved||0; }
+    S.log.shift(); commit(); toast('Undone'); return;
+  }
+  if(b.id==='schedAdd'){
+    const time=$('schedTime').value||'', m=Math.max(0,Math.min(180,parseInt($('schedMin').value)||0));
+    const had=$('schedIn').value.trim();
+    addFrom('schedIn', t=>{ S.sched.push({text:t,done:false,time,min:m||0}); sortSched(); });
+    if(had){ $('schedMin').value=''; if(time&&m) $('schedTime').value=addMin(time,m); }
+    return;
+  }
+  if(b.id==='newDay'){ S.sched.forEach(s=>s.done=false); commit(); toast('Checks cleared'); return; }
+  if(b.id==='earnAdd'){ const p=Math.max(1,Math.min(50,+$('earnPts').value||1)); addFrom('earnIn', t=>S.earn.push({text:t,pts:p})); return; }
+  if(b.id==='rewAdd'){ const p=Math.max(1,Math.min(999,+$('rewPts').value||1)); addFrom('rewIn', t=>S.rewards.push({text:t,cost:p})); return; }
+  if(d.avg){ document.querySelectorAll('[data-avg]').forEach(x=>x.setAttribute('aria-pressed', x===b)); avg=+d.avg; if(running) schedule(); return; }
+  if(b.id==='timerBtn'){ running ? stopTimer() : startTimer(); return; }
+  if(b.id==='timerTest'){ chime(); return; }
+  if(b.id==='chkYes'){ hideAlert(); if(S.checksDay!==today()){S.checksDay=today();S.checks=0;} S.checks++; S.now+=S.checkPts; S.log.unshift({id:uid(),d:S.checkPts,note:'Good check-in',t:Date.now(),check:true}); commit(); toast(`+${S.checkPts} good check-in`); return; }
+  if(b.id==='chkNo'){ hideAlert(); toast('Next check is coming'); return; }
+});
+function fmtTime(t){ const [h,m]=t.split(':').map(Number); return ((h%12)||12)+':'+String(m).padStart(2,'0')+(h<12?' am':' pm'); }
+function addMin(t,n){ const [h,m]=t.split(':').map(Number); const x=(h*60+m+n)%1440; return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); }
+function sortSched(){ /* timed steps in time order; untimed steps keep their place after the step before them */
+  const timed=S.sched.filter(s=>s.time).sort((a,b)=>a.time.localeCompare(b.time));
+  let k=0; S.sched=S.sched.map(s=>s.time?timed[k++]:s);
+}
+function addFrom(id, fn){ const el=$(id); const t=el.value.trim(); if(!t) { el.focus(); return; } fn(t.slice(0,80)); el.value=''; commit(); el.focus(); }
+['schedIn','earnIn','rewIn'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $({schedIn:'schedAdd',earnIn:'earnAdd',rewIn:'rewAdd'}[id]).click(); }}));
+let nameT; $('nameIn').addEventListener('input',e=>{ clearTimeout(nameT); nameT=setTimeout(()=>{ S.name=e.target.value.trim().slice(0,20); commit(); },600); });
+document.addEventListener('change',e=>{
+  const d=e.target.dataset; if(!d) return;
+  if(d.et!==undefined){ const v=e.target.value.trim(); if(v) S.earn[+d.et].text=v.slice(0,80); }
+  else if(d.ep!==undefined){ S.earn[+d.ep].pts=Math.max(1,Math.min(50,+e.target.value||1)); }
+  else if(d.rt!==undefined){ const v=e.target.value.trim(); if(v) S.rewards[+d.rt].text=v.slice(0,80); }
+  else if(d.rp!==undefined){ S.rewards[+d.rp].cost=Math.max(1,Math.min(999,+e.target.value||1)); }
+  else return;
+  e.target.blur(); commit(); toast('Saved');
+});
+$('chkPts').addEventListener('change',e=>{ S.checkPts=Math.max(1,Math.min(10,+e.target.value||1)); commit(); });
+
+/* ---------- backup ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.id==='backup'){ const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='game-plan-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); toast('Backup saved'); }
+  if(b.id==='resetAsk'){ $('resetBox').innerHTML='<div class="card confirm stack"><b>Clear all points, lists and the schedule?</b><span class="note">Back up first if you might want it later.</span><div class="row"><button class="btn primary" id="resetOk">Yes, clear</button><button class="btn" id="resetNo">Cancel</button></div></div>'; }
+  if(b.id==='resetNo'){ $('resetBox').innerHTML='<button class="btn small ghost" id="resetAsk">Start over (clear everything)</button>'; }
+  if(b.id==='resetOk'){ S=blank(); commit(); $('resetBox').innerHTML='<button class="btn small ghost" id="resetAsk">Start over (clear everything)</button>'; toast('Cleared'); }
+});
+$('restoreIn').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(typeof d!=='object'||!Array.isArray(d.earn)) throw 0; S=Object.assign(blank(),d); commit(); toast('Restored'); }catch(err){ toast('That file is not a Game Plan backup'); } e.target.value=''; }; r.readAsText(f);
+});
+
+/* ---------- VI timer ---------- */
+let avg=3, running=false, due=0, span=1, tick=null, actx=null, wake=null;
+function schedule(){ const mean=avg*60; const sec = mean*(0.5+Math.random()); span=sec*1000; due=Date.now()+span; }
+async function startTimer(){
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); await actx.resume(); }catch(e){}
+  try{ wake = await navigator.wakeLock.request('screen'); }catch(e){}
+  running=true; schedule(); $('timerBtn').textContent='Stop timer'; $('dialLabel').textContent='Timer on';
+  tick=setInterval(step,500); step();
+}
+function stopTimer(){ running=false; clearInterval(tick); $('timerBtn').textContent='Start timer'; $('dialLabel').textContent='Ready'; $('dialTime').textContent='--'; $('arc').style.strokeDashoffset=0; try{wake&&wake.release()}catch(e){} wake=null; }
+function step(){
+  if(!running) return;
+  const left = due-Date.now();
+  $('arc').style.strokeDashoffset = (326.7*(1-Math.max(0,left)/span)).toFixed(1);
+  $('dialTime').textContent = 'Watching';
+  if(left<=0){ chime(); showAlert(); schedule(); }
+}
+function chime(){
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume();
+    [659,880,1047].forEach((f,i)=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type='sine'; o.frequency.value=f; const t=actx.currentTime+i*0.18; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5); o.connect(g).connect(actx.destination); o.start(t); o.stop(t+0.55); });
+  }catch(e){}
+  try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
+}
+function showAlert(){ $('alertBox').innerHTML=`<div class="alert"><h2>Check-in!</h2><span>Calm body and following the plan right now?</span><div class="row" style="justify-content:center"><button class="btn coinbtn" id="chkYes">Yes: +${S.checkPts}</button><button class="btn" id="chkNo">Not this time</button></div></div>`; }
+function hideAlert(){ $('alertBox').innerHTML=''; }
+
+loadLocal(); render(); connect();
+})();
+</script>
+
+</body>
+</html>
